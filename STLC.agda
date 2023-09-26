@@ -1,5 +1,3 @@
--- {-# OPTIONS --cubical #-}
-
 open import Data.Product
 open import Relation.Nullary
 open import Data.Nat
@@ -14,22 +12,6 @@ open ≡-Reasoning
 
 module STLC
   where
-
--- data Context : Set where
---   ∅ : Context
---   _,,_ : Context → Type → Context
-
--- data _∋_ : Context → Type → Set where
---   ∋-here : ∀ {Γ A} → (Γ ,, A) ∋ A
---   ∋-there : ∀ {Γ A B} →
---     Γ ∋ A →
---     (Γ ,, B) ∋ A
-
--- data Lookup : ℕ → Context → Type → Set where
---   Lookup-here : ∀ {Γ A} → Lookup 0 (Γ ,, A) A
---   Lookup-there : ∀ {Γ A B} {n} →
---     Lookup n Γ B →
---     Lookup (suc n) (Γ ,, A) B
 
 data Term : Set where
   true : Term
@@ -85,11 +67,6 @@ lookup-ℕ ∋-here = 0 , ∋′-here
 lookup-ℕ (∋-there p) with lookup-ℕ p
 ... | fst , snd = suc fst , ∋′-there snd
 
--- to-lookup-ℕ : ∀ {Γ A z} →
---   (p : ∃[ x ] Γ ∋′ x ⦂ A) →
---   p ≡ lookup-ℕ {Γ} {A} z
--- to-lookup-ℕ = {!!}
-
 lookup-ℕ-id : ∀ {Γ A} {x} →
   ℕ-lookup {Γ} {A} (proj₂ (lookup-ℕ x)) ≡ x
 lookup-ℕ-id {x = ∋-here} = refl
@@ -99,16 +76,6 @@ lookup-ℕ-id {x = ∋-there x} rewrite lookup-ℕ-id {x = x} = refl
   proj₁ (lookup-ℕ {Γ} {A} (ℕ-lookup {x = z} x)) ≡ z
 ℕ-lookup-id₁ {z = zero} {x = ∋′-here} = refl
 ℕ-lookup-id₁ {z = suc z} {x = ∋′-there x} rewrite ℕ-lookup-id₁ {z = z} {x = x} = refl
-
--- Goal: z ≡ proj₁ (lookup-ℕ (ℕ-lookup x))
-
--- data _∋_⦂_ : Context → ℕ → Type → Set where
---   ∋-here : ∀ {Γ : Context} {A} →
---     (Γ ,, A) ∋ zero ⦂ A
-
---   ∋-there : ∀ {Γ : Context} {A B} {x : ℕ} →
---     Γ ∋ x ⦂ A →
---     (Γ ,, B) ∋ suc x ⦂ A
 
 to-ℕ : ∀ {Γ} →
   ∀ {A} → Γ ∋ A →
@@ -120,10 +87,6 @@ to-ℕ-lookup : ∀ {Γ A} {x} →
   to-ℕ {Γ} {A} x ≡ proj₁ (lookup-ℕ x)
 to-ℕ-lookup {.(_ ,, A)} {A} {∋-here} = refl
 to-ℕ-lookup {.(_ ,, _)} {A} {∋-there x} rewrite to-ℕ-lookup {x = x} = refl
-
--- lookup-to-ℕ : ∀ {Γ A} {x} →
---   to-ℕ (ℕ-lookup x) ≡ x
--- lookup-to-ℕ = ?
 
 data _⊢_⦂_ : Context → Term → Type → Set where
   Ty-true : ∀ {Γ} →
@@ -172,11 +135,6 @@ ext′-preserves-types₁ : ∀ {Γ A B} {ρ} {x} →
   Γ ∋′ ρ x ⦂ A →
   (Γ ,, B) ∋′ ext′ ρ (suc x) ⦂ A
 ext′-preserves-types₁ {Γ} {ρ} {x} z = ∋′-there z
-
--- ext′-preserves-types₁ : ∀ {Γ A B} {ρ} {x} →
---   Γ ∋′ ρ x ⦂ A →
---   (Γ ,, B) ∋′ ext′ ρ (suc x) ⦂ A
--- ext′-preserves-types₁ {Γ} {ρ} {x} z = ∋′-there z
 
 ext′-preserves-types₂ :  ∀ {Γ A} {ρ} →
   (Γ ,, A) ∋′ ext′ ρ zero ⦂ A
@@ -240,14 +198,6 @@ rename′-preserves-type ρ ρ-renaming (Ty-V x refl) = Ty-V (ℕ-lookup (proj�
 rename′-preserves-type ρ ρ-renaming (Ty-· M-typed N-typed) = Ty-· (rename′-preserves-type ρ ρ-renaming M-typed)
                                                               (rename′-preserves-type ρ ρ-renaming N-typed)
 rename′-preserves-type {Γ} ρ ρ-renaming (Ty-ƛ M-typed) = Ty-ƛ (rename′-preserves-type (ext′ ρ) (ext-Is-Renaming ρ-renaming) M-typed)
-
--- -- rename-act : ∀ {Γ Δ} →
--- --   (∀ {A} {x} → Γ ∋ x ⦂ A → Δ ∋ x ⦂ A) →
--- --   ℕ → ℕ
--- -- rename-act {∅} ρ zero = zero
--- -- rename-act {Γ ,, x} ρ zero = to-ℕ (ρ (∋-here))
--- -- rename-act {∅} ρ (suc n) = zero
--- -- rename-act {Γ ,, x} ρ (suc n) = to-ℕ (∋-there (rename-act ρ n))
 
 rename : ∀ {Γ Δ} →
   (∀ {A} → Γ ∋ A → Δ ∋ A) →
@@ -652,237 +602,3 @@ module TypeInterpret
       ∎)
     subst-lemma (Ty-· M-typed M-typed₁) N-typed = {!!}
     subst-lemma (Ty-ƛ M-typed) N-typed = {!!}
-
-    -- ⟦_⊢_⦂_⟧ : (Γ : Context) → Term → (A : Type) → (C⟦ Γ ⟧ ⇒[ 𝓒 ] T⟦ A ⟧)
-    -- ⟦ Γ ⊢ true ⦂ Boolean ⟧ = ⟦true⟧ ∘[ 𝓒 ] 𝟙!
-    -- ⟦ Γ ⊢ true ⦂ A Type.⇒ A₁ ⟧ = {!!}
-    -- ⟦ Γ ⊢ false ⦂ A ⟧ = {!!}
-    -- ⟦ Γ ⊢ V x ⦂ A ⟧ = {!!}
-    -- ⟦ Γ ⊢ M · M₁ ⦂ A ⟧ = {!!}
-    -- ⟦ Γ ⊢ ƛ M ⦂ A ⟧ = {!!}
-
-    -- variable Γ : Context
-    -- variable A : Type
-    -- variable B : Type
-
-    -- -- test : (M : Term (∅ ,, A) B) (M′ : Term (∅ ,, A) A) → T⟦ A ⟧ ⇒[ 𝓒 ] T⟦ B ⟧
-    -- test : ∀ {A B} (M : Term) (N : Term) →
-    --   (∅ ,, A) ⊢ M ⦂ B →
-    --   (∅ ,, A) ⊢ N ⦂ A →
-    --   T⟦ A ⟧ ⇒[ 𝓒 ] T⟦ B ⟧
-    -- test {A} {B} M N M-typed N-typed = ⟦ (∅ ,, A) ⊢ M ⦂ B ⟧ ∘[ 𝓒 ] move𝟙 ⟦ (∅ ,, A) ⊢ N ⦂ A ⟧
-
-    -- subst-lemma : ∀ {A B C} {M N} →
-    --   (∅ ,, A) ⊢ M ⦂ B →
-    --   (∅ ,, C) ⊢ N ⦂ A →
-    --   ⟦ ∅ ,, C ⊢ (M O[ N ]) ⦂ B ⟧
-    --     ≡
-    --   ⟦ ∅ ,, A ⊢ M ⦂ B ⟧
-    --     ∘[ 𝓒 ]
-    --   (𝟙⊗ ∘[ 𝓒 ] ⟦ ∅ ,, C ⊢ N ⦂ A ⟧)
-    -- subst-lemma Ty-true N-typed = {!!}
-    -- subst-lemma Ty-false N-typed = {!!}
-    -- subst-lemma (Ty-V x refl) N-typed = {!!}
-    -- subst-lemma (Ty-· M-typed M-typed₁) N-typed = {!!}
-    -- subst-lemma (Ty-ƛ M-typed) N-typed = {!!}
-
---     subst-lemma : ∀ {A B C} {M : Term (∅ ,, A) B} {M′ : Term (∅ ,, C) A} →
---       ⟦ M O[ M′ ] ⟧ ≡ (⟦ M ⟧ ∘[ 𝓒 ] (𝟙⊗ ∘[ 𝓒 ] ⟦ M′ ⟧))
---     subst-lemma {M = true} {M′ = M′} =
---       let p = (⟦ true ⟧ ∘[ 𝓒 ] (𝟙⊗ ∘[ 𝓒 ] ⟦ M′ ⟧))
---           q = ⟦ true O[ M′ ] ⟧
---       in
---       {!!}
---     subst-lemma {M = false} {M′ = M′} = {!!}
---     subst-lemma {M = V x} {M′ = M′} = {!!}
---     subst-lemma {M = M · M₁} {M′ = M′} = {!!}
---     subst-lemma {M = ƛ M} {M′ = M′} = {!!}
---     -- subst-lemma {M = true} {M′ = M′}
---     -- --   with true O[ M′ ]
---     -- -- ... | .true = {!!}
---     -- subst-lemma {M = false} = {!!}
---     -- subst-lemma {M = V x} = {!!}
---     -- subst-lemma {M = M · M₁} = {!!}
---     -- subst-lemma {M = ƛ M} = {!!}
-
-
-
-
-
--- -- _O[_] : ∀ {Γ A B C} →
--- --   Term (Γ ,, B) A →
--- --   Term (Γ ,, C) B →
--- --   Term (Γ ,, C) A
--- -- _O[_] {Γ} {A} {B} {C} M N = subst σ M
--- --   where
--- --     σ : ∀ {Z} → (Γ ,, B) ∋ Z → Term (Γ ,, C) Z
--- --     σ ∋-here = N
--- --     σ (∋-there x) = V (∋-there x)
-
-
--- -- -- -- -- data Value : ∀ {Γ A} → Term Γ A → Set where
--- -- -- -- --   Value-true : ∀ {Γ} → Value {Γ} true
--- -- -- -- --   Value-false : ∀ {Γ} → Value {Γ} false
--- -- -- -- --   Value-ƛ : ∀ {Γ A B} {f : Term (Γ ,, A) B} →
--- -- -- -- --     Value (ƛ f)
-
--- -- -- -- -- infix 2 _⟶_
--- -- -- -- -- data _⟶_ : ∀ {Γ A} → Term Γ A → Term Γ A → Set where
--- -- -- -- --   ⟶-ξ₁ : ∀ {Γ A B} {f f′ : Term Γ (A ⇒ B)} {x : Term Γ A} →
--- -- -- -- --     f ⟶ f′ →
--- -- -- -- --     f · x ⟶ f′ · x
-
--- -- -- -- --   ⟶-ξ₂ : ∀ {Γ A B} {f : Term Γ (A ⇒ B)} {x x′ : Term Γ A} →
--- -- -- -- --     Value f →
--- -- -- -- --     x ⟶ x′ →
--- -- -- -- --     f · x ⟶ f · x′
-
--- -- -- -- --   ⟶-β : ∀ {Γ A B} {f : Term (Γ ,, A) B} {x : Term Γ A} →
--- -- -- -- --     Value x →
--- -- -- -- --     (ƛ f · x) ⟶ f [ x ]
-
--- -- -- -- -- infix  2 _⟶*_
--- -- -- -- -- infix  1 begin_
--- -- -- -- -- infixr 2 _⟶⟨_⟩_
--- -- -- -- -- infix  3 _∎
--- -- -- -- -- infixr 2 _⟶*⟨_⟩_
-
--- -- -- -- -- data _⟶*_ : ∀ {Γ A} → Term Γ A → Term Γ A → Set where
--- -- -- -- --   _∎ : ∀ {Γ A} {M : Term Γ A} →
--- -- -- -- --     M ⟶* M
-
--- -- -- -- --   _⟶⟨_⟩_ : ∀ {Γ A} (M : Term Γ A) {M′ M′′ : Term Γ A} →
--- -- -- -- --     M ⟶ M′ →
--- -- -- -- --     M′ ⟶* M′′ →
--- -- -- -- --     M ⟶* M′′
-
--- -- -- -- -- _⟶*⟨_⟩_ : ∀ {Γ A} (M : Term Γ A) {M′ M′′ : Term Γ A} →
--- -- -- -- --     M ⟶* M′ →
--- -- -- -- --     M′ ⟶* M′′ →
--- -- -- -- --     M ⟶* M′′
--- -- -- -- -- M ⟶*⟨ _∎ ⟩ M′⟶*M′′ = M′⟶*M′′
--- -- -- -- -- M ⟶*⟨ .M ⟶⟨ x ⟩ M⟶*M′ ⟩ M′⟶*M′′ = M ⟶⟨ x ⟩ _ ⟶*⟨ M⟶*M′ ⟩ M′⟶*M′′
-
--- -- -- -- -- ⟶*-ξ₁ : ∀ {Γ A B} {f f′ : Term Γ (A ⇒ B)} {x : Term Γ A} →
--- -- -- -- --     f ⟶* f′ →
--- -- -- -- --     f · x ⟶* f′ · x
--- -- -- -- -- ⟶*-ξ₁ _∎ = _∎
--- -- -- -- -- ⟶*-ξ₁ (_ ⟶⟨ x ⟩ f⟶*f′) = (_ · _) ⟶⟨ ⟶-ξ₁ x ⟩ ⟶*-ξ₁ f⟶*f′
-
--- -- -- -- -- ⟶*-ξ₂ : ∀ {Γ A B} {f : Term Γ (A ⇒ B)} {x x′ : Term Γ A} →
--- -- -- -- --     Value f →
--- -- -- -- --     x ⟶* x′ →
--- -- -- -- --     f · x ⟶* f · x′
--- -- -- -- -- ⟶*-ξ₂ f-val _∎ = _∎
--- -- -- -- -- ⟶*-ξ₂ f-val (_ ⟶⟨ x ⟩ p) = (_ · _) ⟶⟨ ⟶-ξ₂ f-val x ⟩ ⟶*-ξ₂ f-val p
-
--- -- -- -- -- begin_ : ∀ {Γ} {A} {M N : Term Γ A}
--- -- -- -- --   → M ⟶* N
--- -- -- -- --     ------
--- -- -- -- --   → M ⟶* N
--- -- -- -- -- begin_ M⟶*N = M⟶*N
-
--- -- -- -- -- _⇓_ : ∀ {Γ A} → Term Γ A → Term Γ A → Set
--- -- -- -- -- _⇓_ M M′ = Value M′ × (M ⟶* M′)
-
--- -- -- -- -- _⇓ : ∀ {Γ A} → Term Γ A → Set
--- -- -- -- -- _⇓ M = ∃[ M′ ] M ⇓ M′
-
--- -- -- -- -- Value⇓ : ∀ {Γ A} {M : Term Γ A} →
--- -- -- -- --   Value M → M ⇓
--- -- -- -- -- Value⇓ Value-true = true , Value-true , _∎
--- -- -- -- -- Value⇓ Value-false = false , Value-false , _∎
--- -- -- -- -- Value⇓ {M = ƛ f} Value-ƛ = ƛ f , Value-ƛ , _∎
-
--- -- -- -- -- Normal : ∀ {Γ A} → Term Γ A → Set
--- -- -- -- -- Normal M = ¬ (∃[ M′ ] (M ⟶ M′))
-
--- -- -- -- -- Value-Normal : ∀ {Γ A} {M : Term Γ A} →
--- -- -- -- --   Value M →
--- -- -- -- --   Normal M
--- -- -- -- -- Value-Normal Value-true ()
--- -- -- -- -- Value-Normal Value-false ()
--- -- -- -- -- Value-Normal Value-ƛ ()
-
--- -- -- -- -- open import Category
--- -- -- -- -- open import Level
-
--- -- -- -- -- _ : ∀ {A B} {x : Term (∅ ,, A) B} → (true O[ x ]) ≡ true
--- -- -- -- -- _ = refl
-
-
--- -- -- -- -- module TypeInterpret
--- -- -- -- --   (𝓒 : Category zero zero zero)
--- -- -- -- --   (𝟘 : Category.Obj 𝓒)
--- -- -- -- --   (𝟙 : Category.Obj 𝓒)
--- -- -- -- --   (𝟘-Initial : Limits.Initial 𝓒 𝟘)
--- -- -- -- --   (𝟙-Final : Limits.Final 𝓒 𝟙)
--- -- -- -- --   (_⊗_ : Category.Obj 𝓒 → Category.Obj 𝓒 → Category.Obj 𝓒)
--- -- -- -- --   (⊗-Product : ∀ {A B} → Limits.Product 𝓒 (A ⊗ B) A B)
-
--- -- -- -- --   (T⟦_⟧ : Type → Category.Obj 𝓒)
--- -- -- -- --   where
-
--- -- -- -- --   ⊗₁ : ∀ {A B} → (A ⊗ B) ⇒[ 𝓒 ] A
--- -- -- -- --   ⊗₁ {A} {B} with ⊗-Product {A} {B}
--- -- -- -- --   ... | fst , _ = fst
-
--- -- -- -- --   ⊗₂ : ∀ {A B} → (A ⊗ B) ⇒[ 𝓒 ] B
--- -- -- -- --   ⊗₂ {A} {B} with ⊗-Product {A} {B}
--- -- -- -- --   ... | _ , snd , _ = snd
-
--- -- -- -- --   𝟙! : ∀ {A} → (A ⇒[ 𝓒 ] 𝟙)
--- -- -- -- --   𝟙! {A} = proj₁ (𝟙-Final A)
-
--- -- -- -- --   -- mk-⊗ : ∀ {A B} → A → B → (𝟙 ⇒[ 𝓒 ] (A ⊗ B))
--- -- -- -- --   -- mk-⊗ = ?
-
--- -- -- -- --   𝟙⊗ : ∀ {B} → (B ⇒[ 𝓒 ] (𝟙 ⊗ B))
--- -- -- -- --   𝟙⊗ {B} with ⊗-Product {𝟙} {B}
--- -- -- -- --   ... | _ , _ , p = proj₁ (p B 𝟙! (Category.id 𝓒))
-
--- -- -- -- --   elim-𝟙⊗ : ∀ {B C} → ((𝟙 ⊗ B) ⇒[ 𝓒 ] C) → (B ⇒[ 𝓒 ] C)
--- -- -- -- --   elim-𝟙⊗ f = f ∘[ 𝓒 ] 𝟙⊗
-
--- -- -- -- --   move𝟙 : ∀ {A B} → ((𝟙 ⊗ A) ⇒[ 𝓒 ] B) → (A ⇒[ 𝓒 ] (𝟙 ⊗ B))
--- -- -- -- --   move𝟙 f = (𝟙⊗ ∘[ 𝓒 ] f) ∘[ 𝓒 ] 𝟙⊗
-
--- -- -- -- --   C⟦_⟧ : (Γ : Context) → Category.Obj 𝓒
--- -- -- -- --   C⟦_⟧ ∅ = 𝟙
--- -- -- -- --   C⟦_⟧ (Γ ,, A) = C⟦ Γ ⟧ ⊗ T⟦ A ⟧
-
--- -- -- -- --   -- compose-lemma : ∀ {A B} {f : 𝟙 ⇒[ 𝓒 ] A} {g : B ⇒[ 𝓒 ] 𝟙} →
--- -- -- -- --   --   f ∘[ 𝓒 ] g ≡ f
--- -- -- -- --   -- compose-lemma = ?
-
--- -- -- -- --   module Semantics
--- -- -- -- --     (⟦_⟧ : ∀ {Γ A} → Term Γ A → (C⟦ Γ ⟧ ⇒[ 𝓒 ] T⟦ A ⟧))
--- -- -- -- --     where
-
--- -- -- -- --     open Category.Category 𝓒
-
--- -- -- -- --     variable Γ : Context
--- -- -- -- --     variable A : Type
--- -- -- -- --     variable B : Type
-
--- -- -- -- --     test : (M : Term (∅ ,, A) B) (M′ : Term (∅ ,, A) A) → T⟦ A ⟧ ⇒[ 𝓒 ] T⟦ B ⟧
--- -- -- -- --     test M M′ = (⟦ M ⟧) ∘[ 𝓒 ] move𝟙 ⟦ M′ ⟧
-
--- -- -- -- --     subst-lemma : ∀ {A B C} {M : Term (∅ ,, A) B} {M′ : Term (∅ ,, C) A} →
--- -- -- -- --       ⟦ M O[ M′ ] ⟧ ≡ (⟦ M ⟧ ∘[ 𝓒 ] (𝟙⊗ ∘[ 𝓒 ] ⟦ M′ ⟧))
--- -- -- -- --     subst-lemma {M = true} {M′ = M′} =
--- -- -- -- --       let p = (⟦ true ⟧ ∘[ 𝓒 ] (𝟙⊗ ∘[ 𝓒 ] ⟦ M′ ⟧))
--- -- -- -- --           q = ⟦ true O[ M′ ] ⟧
--- -- -- -- --       in
--- -- -- -- --       {!!}
--- -- -- -- --     subst-lemma {M = false} {M′ = M′} = {!!}
--- -- -- -- --     subst-lemma {M = V x} {M′ = M′} = {!!}
--- -- -- -- --     subst-lemma {M = M · M₁} {M′ = M′} = {!!}
--- -- -- -- --     subst-lemma {M = ƛ M} {M′ = M′} = {!!}
--- -- -- -- --     -- subst-lemma {M = true} {M′ = M′}
--- -- -- -- --     -- --   with true O[ M′ ]
--- -- -- -- --     -- -- ... | .true = {!!}
--- -- -- -- --     -- subst-lemma {M = false} = {!!}
--- -- -- -- --     -- subst-lemma {M = V x} = {!!}
--- -- -- -- --     -- subst-lemma {M = M · M₁} = {!!}
--- -- -- -- --     -- subst-lemma {M = ƛ M} = {!!}
